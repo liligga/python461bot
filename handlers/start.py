@@ -37,6 +37,7 @@ async def start_handler(message: types.Message):
         reply_markup=kb
     )
 
+# @start_router.callback_query(lambda cb: cb.data == "aboutus")
 @start_router.callback_query(F.data == "aboutus")
 async def about_us_handler(callback: types.CallbackQuery):
     text = "Текст о нашем магазине"
