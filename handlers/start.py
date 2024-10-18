@@ -29,6 +29,12 @@ async def start_handler(message: types.Message):
                     text="О нас",
                     callback_data="aboutus"
                 )
+            ],
+            [
+                types.InlineKeyboardButton(
+                    text="Пройти наш опрос",
+                    callback_data="opros"
+                )
             ]
         ]
     )

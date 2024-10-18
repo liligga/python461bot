@@ -1,7 +1,6 @@
 import sqlite3
 
 
-# connection = sqlite3.connect('db.sqlite')
 class Database:
     def __init__(self, path: str):
         self.path = path
@@ -21,3 +20,7 @@ class Database:
 
             connection.commit()
 
+    def execute(self, query: str, params: tuple = None):
+        with sqlite3.connect(self.path) as connection:
+            connection.execute(query, params)
+            connection.commit()
