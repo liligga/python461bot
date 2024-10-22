@@ -66,6 +66,23 @@ async def process_confirm(message: types.Message, state: FSMContext):
     data = await state.get_data()
     print(data)
     # save to db
+    database.execute(
+        query="""
+            INSERT INTO books (name, author, price, genre)
+            VALUES (?, ?, ?, ?)
+        """,
+        params=(
+            data['name'],
+            data['author'],
+            data['price'],
+            data['genre']
+        )
+    )
     await state.clear()
     kb = types.ReplyKeyboardRemove()
     await message.answer("Данные были сохранены!", reply_markup=kb)
+
+@admin_book_router.message(BookForm.confirm, F.text == "Нет")
+async def process_not_confirmed(message: types.Message, state: FSMContext):
+    await state.set_state(BookForm.name)
+    await message.answer("Задайте название книги:")

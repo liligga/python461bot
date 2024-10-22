@@ -8,7 +8,7 @@ from handlers.start import start_router
 from handlers.other_messages import other_msg_router
 from handlers.opros_dialog import opros_router
 from handlers.admin_book_fsm import admin_book_router
-
+from handlers.book_catalog import catalog_router
 
 async def on_startup(bot: Bot):
     print("Бот запустился")
@@ -20,6 +20,7 @@ async def main():
     # dp.include_router(picture_router)
     dp.include_router(opros_router)
     dp.include_router(admin_book_router)
+    dp.include_router(catalog_router)
     # в самом конце общий обработчик
     dp.include_router(other_msg_router)
 
