@@ -17,14 +17,20 @@ class Database:
                     genre TEXT
                 )
             """)
-
+            connection.execute("""
+                CREATE TABLE IF NOT EXISTS genres (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT
+                )
+            """)
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS books (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
                     author TEXT,
                     price INTEGER,
-                    genre TEXT
+                    genre_id INTEGER,
+                    FOREIGN KEY (genre_id) REFERENCES genres(id)
                 )
             """)
 
@@ -35,7 +41,7 @@ class Database:
             connection.execute(query, params)
             connection.commit()
 
-    def fetch(self, query: str, params: tuple = None):
+    def fetch(self, query: str, params: tuple = tuple()):
         with sqlite3.connect(self.path) as conn:
             result = conn.execute(query, params)
             result.row_factory = sqlite3.Row

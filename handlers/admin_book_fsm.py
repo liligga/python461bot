@@ -13,9 +13,31 @@ class BookForm(StatesGroup):
     genre = State()
     confirm = State()
 
+
+class GenreForm(StatesGroup):
+    name = State()
+
+
 admin = 243154734
 admin_book_router = Router()
 admin_book_router.message.filter(F.from_user.id == admin)
+
+
+@admin_book_router.message(Command("newgenre"))
+async def add_new_genre(message: types.Message, state: FSMContext):
+    await state.set_state(GenreForm.name)
+    await message.answer("Задайте название нового жанра:")
+
+
+@admin_book_router.message(GenreForm.name)
+async def process_genre_name(message: types.Message, state: FSMContext):
+    name = message.text
+    database.execute(
+        query="INSERT INTO genres(name) VALUES (?)",
+        params=(name,),
+    )
+    await state.clear()
+    await message.answer("Жанр был успешно добавлен")
 
 
 @admin_book_router.message(Command("newbook"))
@@ -37,12 +59,23 @@ async def process_price(message: types.Message, state: FSMContext):
     await state.set_state(BookForm.author)
     await message.answer("Кто автор этой книги:")
 
+l = [1, 2, 3, 4]
+squares = [i**2 for i in l] # list comprehension
 
 @admin_book_router.message(BookForm.author)
 async def process_author(message: types.Message, state: FSMContext):
     await state.update_data(author=message.text)
     await state.set_state(BookForm.genre)
-    await message.answer("Выберите жанр:")
+    genres = database.fetch(
+        query="SELECT name FROM genres"
+    ) # [{'name': 'Прирвамавв'}]
+    kb = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text=genre['name']) for genre in genres],
+        ],
+        resize_keyboard=True
+    )
+    await message.answer("Выберите жанр:", reply_markup=kb)
 
 
 @admin_book_router.message(BookForm.genre)
@@ -57,30 +90,33 @@ async def process_genre(message: types.Message, state: FSMContext):
         resize_keyboard=True
     )
     await state.set_state(BookForm.confirm)
-    await message.answer(f"Вы ввели:\n Название: {data['name']},\n Цена: {data['price']},\n"
-                         f"Автор: {data['author']},\n Жанр: {data['genre']}", reply_markup=kb)
+    await message.answer(f"Правильно ли вы ввели:\n Название: {data['name']},\n Цена: {data['price']},\n"
+                         f" Автор: {data['author']},\n Жанр: {data['genre']}", reply_markup=kb)
 
 
 @admin_book_router.message(BookForm.confirm, F.text == "Да")
 async def process_confirm(message: types.Message, state: FSMContext):
     data = await state.get_data()
     print(data)
+    genre = database.fetch(query="SELECT id FROM genres WHERE name = ?") # [{'id': 1}]
+    genre_id = genre[0]['id']
     # save to db
     database.execute(
         query="""
-            INSERT INTO books (name, author, price, genre)
+            INSERT INTO books (name, author, price, genre_id)
             VALUES (?, ?, ?, ?)
         """,
         params=(
             data['name'],
             data['author'],
             data['price'],
-            data['genre']
+            genre_id
         )
     )
     await state.clear()
     kb = types.ReplyKeyboardRemove()
     await message.answer("Данные были сохранены!", reply_markup=kb)
+
 
 @admin_book_router.message(BookForm.confirm, F.text == "Нет")
 async def process_not_confirmed(message: types.Message, state: FSMContext):
