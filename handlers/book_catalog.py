@@ -26,17 +26,32 @@ async def show_all_categories(message: types.Message):
     await message.answer("Выберите жанр книг", reply_markup=kb)
 
 
-genres = ("Приключения", "Фантастика", "Детектив", "Фентези")
+# genres = ("Приключения", "Фантастика", "Детектив", "Фентези")
 
+def filter_genres(message: types.Message):
+    genre = message.text
+    genres = database.fetch(
+        query="SELECT * FROM genres WHERE name = ?",
+        params=(genre,)
+    )
+    # [], [{'id': 1, 'name': 'fdsfdsfd'}]
+    if genres:
+        return {'genre': genres[0]['name']}
+    else:
+        return False
 
 # @catalog_router.message(lambda msg: msg.text in genres)
 
-@catalog_router.message(F.text.in_(genres))
-async def show_books_by_category(message: types.Message):
-    genre = message.text
+# @catalog_router.message(F.text.in_(genres))
+@catalog_router.message(filter_genres)
+async def show_books_by_category(message: types.Message, genre: str):
     print(f"{genre=}")
     books = database.fetch(
-        query="SELECT * FROM books WHERE genre = ?",
+        query="""
+            SELECT * FROM books
+            JOIN genres ON books.genre_id = genres.id
+            WHERE genres.name = ?
+        """,
         params=(genre,)
     )
     pprint(books)

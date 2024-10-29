@@ -19,13 +19,13 @@ class Database:
             """)
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS genres (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT
                 )
             """)
             connection.execute("""
                 CREATE TABLE IF NOT EXISTS books (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGEidR PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
                     author TEXT,
                     price INTEGER,
@@ -36,7 +36,7 @@ class Database:
 
             connection.commit()
 
-    def execute(self, query: str, params: tuple = None):
+    def execute(self, query: str, params: tuple = tuple()):
         with sqlite3.connect(self.path) as connection:
             connection.execute(query, params)
             connection.commit()

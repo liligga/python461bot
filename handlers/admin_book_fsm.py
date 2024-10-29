@@ -98,7 +98,10 @@ async def process_genre(message: types.Message, state: FSMContext):
 async def process_confirm(message: types.Message, state: FSMContext):
     data = await state.get_data()
     print(data)
-    genre = database.fetch(query="SELECT id FROM genres WHERE name = ?") # [{'id': 1}]
+    genre = database.fetch(
+        query="SELECT id FROM genres WHERE name = ?",
+        params=(data['genre'],)
+    ) # [{'id': 1}]
     genre_id = genre[0]['id']
     # save to db
     database.execute(
